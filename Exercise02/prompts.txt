@@ -1,5 +1,5 @@
 #Grok -
-Create a 3D solar system with orbiting planets, adjustable simulation speed, labels, and click-to-focus camera moves. Include a pause control, orbital trails, and simple info panels for each planet. Keep the aesthetic dark and spacey with smooth animation loops.
+Explain Kepler's laws in code
 
 #Meta AI - 
 Build a habit tracker with daily check-offs, a streak calendar, and completion stats for each habit. Include add/edit/delete habits, color coding, and persistence in local storage. Make the weekly or monthly view scannable and motivating.
