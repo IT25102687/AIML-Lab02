@@ -1,0 +1,218 @@
+# Kepler's Three Laws of Planetary Motion
+
+Kepler's three laws describe how planets move around the Sun.
+
+## 1. Law of Ellipses
+
+A planet's orbit is an ellipse with the Sun at one focus, not at the center.
+
+The polar equation of an ellipse with the Sun at one focus is:
+
+$$
+r = \frac{a(1-e^2)}{1+e\cos\theta}
+$$
+
+Where:
+
+* `a` = semi-major axis
+* `e` = eccentricity, where `0 <= e < 1`
+* `theta` = true anomaly
+* `r` = distance from the Sun
+
+```python
+import math
+
+def orbital_radius(a: float, e: float, theta: float) -> float:
+    """Distance from the Sun at true anomaly theta, in radians."""
+    return a * (1 - e**2) / (1 + e * math.cos(theta))
+
+
+# Circular orbit: e = 0 gives a constant radius
+print(orbital_radius(a=1.0, e=0.0, theta=0.0))
+print(orbital_radius(a=1.0, e=0.0, theta=math.pi))
+
+# Eccentric orbit
+print(orbital_radius(a=1.0, e=0.5, theta=0.0))      # Periapsis ≈ 0.5
+print(orbital_radius(a=1.0, e=0.5, theta=math.pi))  # Apoapsis ≈ 1.5
+```
+
+## 2. Law of Equal Areas
+
+A line connecting the Sun and a planet sweeps out equal areas during equal intervals of time.
+
+This means that a planet:
+
+* Moves faster when it is closer to the Sun
+* Moves slower when it is farther from the Sun
+
+The areal velocity is constant:
+
+$$
+\frac{dA}{dt}
+=
+\frac{1}{2}r^2\frac{d\theta}{dt}
+=
+\text{constant}
+$$
+
+Therefore, angular velocity is proportional to:
+
+$$
+\frac{1}{r^2}
+$$
+
+Example:
+
+```python
+def angular_speed(r: float, areal_const: float) -> float:
+    """Calculate angular speed from constant areal velocity."""
+    return 2 * areal_const / (r * r)
+
+
+areal = 0.5
+
+r_near = 0.5
+r_far = 1.5
+
+omega_near = angular_speed(r_near, areal)
+omega_far = angular_speed(r_far, areal)
+
+print(f"Near Sun: {omega_near:.3f}")
+print(f"Far from Sun: {omega_far:.3f}")
+print(f"Ratio: {omega_near / omega_far:.1f}")
+```
+
+A simple time-step update is:
+
+```python
+def step_orbit(r, theta, areal_const, dt):
+    omega = 2 * areal_const / (r * r)
+    theta_new = theta + omega * dt
+
+    return r, theta_new
+```
+
+The radius still comes from the ellipse equation in Kepler's First Law.
+
+## 3. Law of Periods
+
+The square of a planet's orbital period is proportional to the cube of its semi-major axis.
+
+$$
+T^2 \propto a^3
+$$
+
+Equivalently:
+
+$$
+\frac{T^2}{a^3} = \text{constant}
+$$
+
+For planets orbiting the Sun, when:
+
+* `a` is measured in astronomical units (AU)
+* `T` is measured in years
+
+the relationship is approximately:
+
+$$
+T = a^{3/2}
+$$
+
+Example:
+
+```python
+def period_years(a_au: float) -> float:
+    """Orbital period in years for a semi-major axis measured in AU."""
+    return a_au ** 1.5
+
+
+planets = {
+    "Mercury": 0.387,
+    "Venus": 0.723,
+    "Earth": 1.000,
+    "Mars": 1.524,
+    "Jupiter": 5.203,
+    "Saturn": 9.537,
+}
+
+for name, a in planets.items():
+    T = period_years(a)
+
+    print(
+        f"{name:8s}  "
+        f"a = {a:5.3f} AU  "
+        f"T ≈ {T:6.2f} yr"
+    )
+```
+
+The value of `T² / a³` should remain approximately constant:
+
+```python
+for name, a in planets.items():
+    T = period_years(a)
+    ratio = T**2 / a**3
+
+    print(f"{name:8s}  T²/a³ = {ratio:.6f}")
+```
+
+For these units, the result should be approximately:
+
+```text
+T² / a³ ≈ 1
+```
+
+## Combined Example
+
+The first two laws can be combined into a simple orbital step:
+
+```python
+import math
+
+def kepler_step(a, e, theta, areal, dt):
+    r = a * (1 - e**2) / (1 + e * math.cos(theta))
+    omega = 2 * areal / (r * r)
+
+    return r, theta + omega * dt
+
+
+a = 1.0
+e = 0.4
+areal = 0.3
+theta = 0.0
+dt = 0.01
+
+for i in range(5):
+    r, theta = kepler_step(a, e, theta, areal, dt)
+
+    print(
+        f"t={i * dt:.2f}  "
+        f"r={r:.3f}  "
+        f"theta={theta:.3f}"
+    )
+```
+
+## Summary
+
+Kepler's laws describe three important properties of planetary motion:
+
+1. **Law of Ellipses**
+   Planetary orbits are ellipses with the Sun at one focus.
+
+2. **Law of Equal Areas**
+   Planets move faster near the Sun and slower farther away while sweeping equal areas in equal times.
+
+3. **Law of Periods**
+   The orbital period and semi-major axis satisfy:
+
+   $$
+   T^2 \propto a^3
+   $$
+
+In the combined example:
+
+* Law 1 determines `r(theta)`
+* Law 2 determines how quickly `theta` changes
+* Law 3 relates the size of the orbit to its total orbital period
+
+Kepler discovered these laws empirically. Newton later showed that they follow from the inverse-square law of gravity.
